@@ -27,12 +27,17 @@ widget_css="""
                 padding: 5px;
                 font-size: 14px;
                 background-color: #fff;
+                color: #333;
                 border: 1px solid #ccc;
                 border-radius: 5px;
                 height: 30px;
             }
             QComboBox:hover {
                 border-color: #5b9bd5;
+            }
+            QComboBox QAbstractItemView {
+                color: #333;
+                background-color: #fff;
             }
             QPushButton {
                 padding: 10px;
@@ -110,7 +115,7 @@ class show_widget(QtWidgets.QWidget):
             list=[]
             for i in all:
                 print(i[5])
-                string = "ID为"+i[1]+" 名称为"+i[0]+" 次数为"+str(i[5])
+                string = f"ID: {i[1]}\n姓名: {i[0]}\n违规次数: {str(i[5])}\n"
                 list.append(string)
             string='\n'.join(list)
             self.detail_widget.label_show.setText(string)
@@ -119,9 +124,22 @@ class show_widget(QtWidgets.QWidget):
             list=[]
             all=self.sql_class.read_ID(self.comboBox.currentText())
             for i in all:
-
-                string = "ID为"+i[1]+" 名称为"+i[0]+" 次数为"+str(i[5])
-                list.append(string)
+                # 显示基本信息
+                basic_info = f"ID: {i[1]}\n姓名: {i[0]}\n违规次数: {str(i[5])}\n"
+                list.append(basic_info)
+                
+                # 显示详细违规记录
+                try:
+                    logs = self.sql_class.read_violation_logs()
+                    if logs:
+                        list.append("详细违规记录：")
+                        for log in logs:
+                            if log[2] == i[1]:  # 匹配当前ID
+                                log_info = f"- 时间: {log[4]}\n  地点: {log[3]}\n  类型: {log[5]}\n  置信度: {log[6]}\n"
+                                list.append(log_info)
+                except Exception as e:
+                    print(f"读取违规日志失败: {e}")
+            
             string='\n'.join(list)
             self.detail_widget.label_show.setText(string)
 

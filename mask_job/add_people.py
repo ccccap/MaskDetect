@@ -204,6 +204,7 @@ class Ui_add_people(QtWidgets.QWidget):
             self.cach_path=file_path
             print(self.cach_path)
             self.lab_show(self.cach_path)
+            QtWidgets.QMessageBox.information(self, "成功", "照片选择成功！")
         else:
             print('Photo is not exsits')
 
@@ -227,52 +228,60 @@ class Ui_add_people(QtWidgets.QWidget):
     def finish(self):
         self.sql_class.create_database()
         if self.name_edit.text() == '' or self.gender_edit.text() =='' or self.cach_path==''or  self.ID_edit.text()=='' or self.phone_edit.text() =='':
-            print("Incomplete information")
-            self.change_video_show(self.mainwindow, self)
+            QtWidgets.QMessageBox.warning(self, "错误", "信息不完整，请填写所有字段！")
             return
 
-        with open(self.cach_path, "rb") as file:
-            binary_data = file.read()
-            self.sql_class.photo_insert(self.name_edit.text(),self.ID_edit.text(),self.gender_edit.text(),self.phone_edit.text(),binary_data)
-
-        data = ''
-        with open('./param.txt', 'r') as f:
-            param = f.readlines()
-            param[0] = str(int(param[0]))
-            param[1] = str(self.retinaface.face_num+1)
-            print(param[1])
-            for i in param:
-                if i!='\n':
-                    data += i+'\n'
-
-        with open('./param.txt', 'w') as f:
-            f.write(data)
-
-        encoding(self.sql_class)
-        self.retinaface.create_weight(0)
-        self.change_video_show(self.mainwindow,self)
-        self.cach_path = ''
-        self.add_photo.setText("photo")
-        self.name_edit.setText("")
-        self.ID_edit.setText("")
-        self.gender_edit.setText("")
-        self.phone_edit.setText("")
-
-    def delete(self):
-        if self.ID_edit.text()!="":
-            self.sql_class.photo_delete(self.ID_edit.text())
+        try:
+            with open(self.cach_path, "rb") as file:
+                binary_data = file.read()
+                self.sql_class.photo_insert(self.name_edit.text(),self.ID_edit.text(),self.gender_edit.text(),self.phone_edit.text(),binary_data)
 
             data = ''
             with open('./param.txt', 'r') as f:
                 param = f.readlines()
                 param[0] = str(int(param[0]))
-                param[1] = str(int(param[1]) - 1)
+                param[1] = str(self.retinaface.face_num+1)
+                print(param[1])
                 for i in param:
-                    if i != '\n':
-                        data += i + '\n'
+                    if i!='\n':
+                        data += i+'\n'
 
             with open('./param.txt', 'w') as f:
                 f.write(data)
+
             encoding(self.sql_class)
+            self.retinaface.create_weight(0)
+            QtWidgets.QMessageBox.information(self, "成功", "人脸添加成功！")
+            self.change_video_show(self.mainwindow,self)
+            self.cach_path = ''
+            self.add_photo.setText("photo")
+            self.name_edit.setText("")
+            self.ID_edit.setText("")
+            self.gender_edit.setText("")
+            self.phone_edit.setText("")
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "错误", f"添加人脸失败：{str(e)}")
+
+    def delete(self):
+        if self.ID_edit.text()!="":
+            try:
+                self.sql_class.photo_delete(self.ID_edit.text())
+
+                data = ''
+                with open('./param.txt', 'r') as f:
+                    param = f.readlines()
+                    param[0] = str(int(param[0]))
+                    param[1] = str(int(param[1]) - 1)
+                    for i in param:
+                        if i != '\n':
+                            data += i + '\n'
+
+                with open('./param.txt', 'w') as f:
+                    f.write(data)
+                encoding(self.sql_class)
+                QtWidgets.QMessageBox.information(self, "成功", "人脸删除成功！")
+                self.ID_edit.setText("")
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "错误", f"删除人脸失败：{str(e)}")
         else:
-            print("ID is None")
+            QtWidgets.QMessageBox.warning(self, "错误", "ID不能为空！")

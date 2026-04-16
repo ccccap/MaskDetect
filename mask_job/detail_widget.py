@@ -16,6 +16,16 @@ widget_css="""
                 font-size: 16px;
                 color: #333;
                 padding: 10px;
+                background-color: #f0f0f0;
+            }
+            QLabel#label_show {
+                font-size: 14px;
+                color: #333;
+                padding: 15px;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                white-space: pre-wrap;
             }
             QPushButton {
                 padding: 10px 20px;
@@ -57,6 +67,7 @@ class detail_widget(QtWidgets.QWidget):
 
         # 创建控件
         self.label_show = QtWidgets.QLabel(self)
+        self.label_show.setObjectName("label_show")
         self.label_show.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         self.btn_detail_show = QtWidgets.QPushButton("显示详细信息", self)
@@ -66,8 +77,9 @@ class detail_widget(QtWidgets.QWidget):
         self.scroll_area = QtWidgets.QScrollArea(self)
         self.scroll_area.setWidget(self.label_show)
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scroll_area.setMinimumSize(600, 400)
 
         # 创建布局
         self.layout_top = QtWidgets.QVBoxLayout()

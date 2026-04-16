@@ -19,11 +19,13 @@ widget_css="""
                 border: 1px solid #ccc;
                 border-radius: 5px;
                 background-color: #fff;
+                color: #333;
             }
 
             QLineEdit:focus {
                 border: 1px solid #5b9bd5;
                 background-color: #e6f0fa;
+                color: #333;
             }
 
             QPushButton {
@@ -118,37 +120,38 @@ class Ui_video_change(QtWidgets.QWidget):
 
     def video_add_cap(self): # 添加摄像头对象
         if self.name_edit.text()=='': # 判断名称是否为空
-            print("error name is None")
+            QtWidgets.QMessageBox.warning(self, "错误", "摄像头名称不能为空！")
             return
 
         if self.IP_edit.text()=='': # 判断IP是否为空
-            print("error IP is None")
+            QtWidgets.QMessageBox.warning(self, "错误", "摄像头IP不能为空！")
             return
 
         for key,value in self.video_cap_list.items():
             if self.name_edit.text()==key:
-                print("name is exist")
+                QtWidgets.QMessageBox.warning(self, "错误", "摄像头名称已存在！")
                 return
         self.video_cap_list[self.name_edit.text()]=[self.IP_edit.text(),self.zhanghao_edit.text(),self.mima_edit.text()]
         self.sql_class.cap_insert(self.name_edit.text(),self.IP_edit.text(),self.zhanghao_edit.text(),self.mima_edit.text())
         self.sql_class.read_cap_list()
         self.mainwindow.create_label()
+        QtWidgets.QMessageBox.information(self, "成功", "摄像头添加成功！")
         print("添加摄像头成功")
         print(self.video_cap_list)
 
     def video_del_cap(self): #删除摄像头对象
         if self.name_edit.text()=='':
-            print("error name is None")
+            QtWidgets.QMessageBox.warning(self, "错误", "摄像头名称不能为空！")
             return
         for key,value in self.video_cap_list.items():
             if self.name_edit.text()==key:
                 del self.video_cap_list[key]
                 self.sql_class.cap_delete(key)
-                print("delete success")
+                QtWidgets.QMessageBox.information(self, "成功", "摄像头删除成功！")
                 self.mainwindow.create_label()
                 return
 
-        print("delete false----- ",self.name_edit.text()," is not exist")
+        QtWidgets.QMessageBox.warning(self, "错误", f"摄像头名称 '{self.name_edit.text()}' 不存在！")
 
     def change_video_show(self, show, close):
         show.show()
