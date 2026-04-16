@@ -237,9 +237,6 @@ class MainWindow(QMainWindow):
 
     def get_picture(self, i, n, mutex_camera, is_open_camera):
         # 关键修改4：优化循环逻辑，避免无限循环
-        # 确定摄像头名称
-        camera_name = "Local Camera" if n == len(self.video_cap_list) else list(self.video_cap_list.keys())[n]
-        
         while is_open_camera[0]:
             ret, frame = i.read()  # 读取视频流的每一帧
             if not ret:  # 读取失败直接跳过
@@ -250,11 +247,11 @@ class MainWindow(QMainWindow):
             try:
                 # 限制列表长度，避免内存溢出
                 if len(self.picture) < self.label_num * 2:
-                    self.picture.append((frame, camera_name))
+                    self.picture.append(frame)
                 # 超过长度时替换最旧的帧
                 elif len(self.picture) >= self.label_num * 2:
                     self.picture.pop(0)
-                    self.picture.append((frame, camera_name))
+                    self.picture.append(frame)
             finally:
                 mutex_camera.release()
 
@@ -298,14 +295,11 @@ class MainWindow(QMainWindow):
             # 关键修改5：多层空值检查，核心修复点
             has_valid_frame = False
             ori_images = []
-            camera_name = "Unknown"
             if len(picture) > 0:
                 # 检查picture[0]是否为None
                 if picture[0] is not None:
                     try:
-                        # 现在picture中存储的是 (frame, camera_name) 元组
-                        frame, camera_name = picture[0]
-                        ori_images = [frame.copy()]
+                        ori_images = [picture[0].copy()]
                         picture.pop(0)
                         has_valid_frame = True
                     except Exception as e:
@@ -355,24 +349,16 @@ class MainWindow(QMainWindow):
                 cv2.putText(image, name, (box[0], box[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.75, [225, 255, 255],
                             thickness=2)
                 if cls_id == 0:
-                    print(f"[{camera_name}] 口鼻无遮挡")
+                    print("口鼻无遮挡")
                     app = True
-                    # 记录违规日志
-                    if self.sql_class:
-                        try:
-                            self.sql_class.log_violation("Unknown", "Unknown", camera_name, "未戴口罩", score)
-                            print(f"已记录违规日志: {camera_name} - 未戴口罩")
-                        except Exception as e:
-                            print(f"记录日志失败: {e}")
                 if cls_id == 1:
-                    print(f"[{camera_name}] 口鼻有遮挡")
+                    print("口鼻有遮挡")
 
             if app:
                 self.face_img_lock.acquire()
                 try:
                     if len(self.face_img_list) < self.label_num * 2:
-                        # 传递帧和摄像头名称到人脸识别模块
-                        self.face_img_list.append((ori_images[0], camera_name))
+                        self.face_img_list.append(ori_images[0])
                 finally:
                     self.face_img_lock.release()
 

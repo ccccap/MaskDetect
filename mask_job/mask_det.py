@@ -7,10 +7,8 @@ import time
 import cv2
 
 class mask_det():
-    def __init__(self, sql_class=None, camera_name="Unknown"):
+    def __init__(self):
         self.is_open_camera=False
-        self.sql_class = sql_class
-        self.camera_name = camera_name
         pass
 
     def ce(self,picture):

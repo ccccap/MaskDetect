@@ -389,7 +389,7 @@ class Retinaface(object):
     # ---------------------------------------------------#
     #   检测图片
     # ---------------------------------------------------#
-    def detect_image(self, image, camera_name="Unknown"):
+    def detect_image(self, image):
         # ---------------------------------------------------#
         #   对输入图像进行一个备份，后面用于绘图
         # ---------------------------------------------------#
@@ -398,7 +398,6 @@ class Retinaface(object):
         #   把图像转换成numpy的形式
         # ---------------------------------------------------#
         image = np.array(image, np.float32)
-        self.camera_name = camera_name
 
         # ---------------------------------------------------#
         #   Retinaface检测部分-开始
@@ -607,12 +606,6 @@ class Retinaface(object):
             id =ID[i]
             if id!='Unknown':
                 self.sql_class_add.num_inster(id)
-                # 记录详细的违规日志
-                try:
-                    self.sql_class_add.log_violation(name, id, self.camera_name, "未戴口罩", 1.0)
-                    print(f"已记录详细违规日志: {name} - {id} - {self.camera_name}")
-                except Exception as e:
-                    print(f"记录详细日志失败: {e}")
             print(name+"-----------------------------------------"+id)
             # font = cv2.FONT_HERSHEY_SIMPLEX
             # cv2.putText(old_image, name, (b[0] , b[3] - 15), font, 0.75, (255, 255, 255), 2)
@@ -942,17 +935,9 @@ class Retinaface(object):
             o_name=[]
             o_id=[]
             all = self.sql_class.read_face_list()
-            
-            if len(all) == 0:
-                print("数据库中没有找到人脸特征数据")
-                return
-                
             for i in all:
                 if i[1] == 'encoding':
-                    face_encodings_retrieved1 = np.frombuffer(i[2], dtype=np.float32)
-                    actual_face_num = len(face_encodings_retrieved1) // 128
-                    face_encodings_retrieved1 = face_encodings_retrieved1.reshape(actual_face_num, 128)
-                    print(f"从数据库加载了 {actual_face_num} 个人脸特征")
+                    face_encodings_retrieved1 = np.frombuffer(i[2], dtype=np.float32).reshape(self.face_num,128)  # a[1]为encoding
                 if i[1] == 'o_name':
                     o_name=i[4].split(',')
 
@@ -963,10 +948,27 @@ class Retinaface(object):
             self.known_face_names=o_name
             self.known_names_id=o_id
             print("encoding is over")
-            
-        except FileNotFoundError as e:
-            print(f"参数文件不存在: {e}")
-        except ValueError as e:
-            print(f"数据格式错误: {e}")
-        except Exception as e:
-            print(f"载入人脸特征失败: {e}")
+
+            # self.known_face_encodings = np.load(
+            #     os.path.dirname(__file__)+"\\model_data\\{backbone}_face_encoding.npy".format(
+            #         backbone=self.facenet_backbone
+            #     )
+            # )
+            # self.known_face_names = np.load(
+            #     os.path.dirname(__file__) + "\\model_data\\{backbone}_names.npy".format(backbone=self.facenet_backbone)
+            # )
+
+            # self.known_names_id = np.load(
+            #     os.path.dirname(__file__) + "\\model_data\\{backbone}_ID_encoding.npy".format(
+            #         backbone=self.facenet_backbone)
+            # )
+
+            # face_encodings_retrieved = np.frombuffer(a[1], dtype=np.float32)
+            # self.known_face_names = face_encodings_retrieved
+            # print(self.known_face_names.shape)
+        except:
+            if not encoding:
+                print(
+                    "载入已有人脸特征失败，请检查model_data下面是否生成了相关的人脸特征文件。"
+                )
+            pass

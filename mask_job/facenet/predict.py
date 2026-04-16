@@ -170,19 +170,12 @@ def face_rec(face_img_list,retinaface,flag):
     retinaface = retinaface
     while True:
         if len(face_img_list)!=0:
-            item = face_img_list.pop(0) if face_img_list else None
-            if item is not None:
-                # 检查item是否是元组（frame, camera_name）
-                if isinstance(item, tuple) and len(item) == 2:
-                    image, camera_name = item
-                else:
-                    image = item
-                    camera_name = "Unknown"
-                
+            image = face_img_list.pop(0) if face_img_list else None
+            if image is not None:
                 frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                # 进行检测，传递摄像头名称
-                frame = np.array(retinaface.detect_image(frame, camera_name))
-                # RGBtoBGR满足opencv显示格式
+                        # 进行检测
+                frame = np.array(retinaface.detect_image(frame))
+                        # RGBtoBGR满足opencv显示格式
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             else:
                 continue

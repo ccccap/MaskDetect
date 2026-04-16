@@ -211,13 +211,6 @@ class sql_class_add_people():
         else:
             print(f"表 '{self.table_name}' 不存在，可以创建。")
             self.create_photo_table()
-        
-        # 检查违规日志表是否存在
-        if 'violation_log' not in tables:
-            print("表 'violation_log' 不存在，创建中...")
-            self.create_violation_log_table()
-        else:
-            print("表 'violation_log' 已存在。")
 
     def connect_photo_database(self):
         self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password,database=self.database_name)
@@ -233,20 +226,6 @@ class sql_class_add_people():
                 photo VARCHAR(255),
                 image LONGBLOB,
                 num INT
-            )
-        """)
-        self.conn.commit()
-        
-    def create_violation_log_table(self):
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS violation_log (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255),
-                ID VARCHAR(255),
-                camera_name VARCHAR(255),
-                violation_time DATETIME,
-                violation_type VARCHAR(255),
-                confidence FLOAT
             )
         """)
         self.conn.commit()
@@ -282,16 +261,4 @@ class sql_class_add_people():
     def read_ID(self,ID):
         self.cursor.execute(f"SELECT * FROM {self.table_name} WHERE ID = {ID}")
         rows=self.cursor.fetchall()
-        return rows
-    
-    def log_violation(self, name, ID, camera_name, violation_type, confidence):
-        self.cursor.execute("""
-            INSERT INTO violation_log (name, ID, camera_name, violation_time, violation_type, confidence)
-            VALUES (%s, %s, %s, NOW(), %s, %s)
-        """, (name, ID, camera_name, violation_type, confidence))
-        self.conn.commit()
-    
-    def read_violation_logs(self):
-        self.cursor.execute("SELECT * FROM violation_log ORDER BY violation_time DESC")
-        rows = self.cursor.fetchall()
         return rows
