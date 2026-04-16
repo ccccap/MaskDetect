@@ -389,7 +389,7 @@ class Retinaface(object):
     # ---------------------------------------------------#
     #   检测图片
     # ---------------------------------------------------#
-    def detect_image(self, image):
+    def detect_image(self, image, camera_name="Unknown"):
         # ---------------------------------------------------#
         #   对输入图像进行一个备份，后面用于绘图
         # ---------------------------------------------------#
@@ -398,6 +398,7 @@ class Retinaface(object):
         #   把图像转换成numpy的形式
         # ---------------------------------------------------#
         image = np.array(image, np.float32)
+        self.camera_name = camera_name
 
         # ---------------------------------------------------#
         #   Retinaface检测部分-开始
@@ -606,6 +607,12 @@ class Retinaface(object):
             id =ID[i]
             if id!='Unknown':
                 self.sql_class_add.num_inster(id)
+                # 记录详细的违规日志
+                try:
+                    self.sql_class_add.log_violation(name, id, self.camera_name, "未戴口罩", 1.0)
+                    print(f"已记录详细违规日志: {name} - {id} - {self.camera_name}")
+                except Exception as e:
+                    print(f"记录详细日志失败: {e}")
             print(name+"-----------------------------------------"+id)
             # font = cv2.FONT_HERSHEY_SIMPLEX
             # cv2.putText(old_image, name, (b[0] , b[3] - 15), font, 0.75, (255, 255, 255), 2)
