@@ -211,6 +211,13 @@ class sql_class_add_people():
         else:
             print(f"表 '{self.table_name}' 不存在，可以创建。")
             self.create_photo_table()
+        
+        # 检查违规日志表是否存在
+        if 'violation_log' not in tables:
+            print("表 'violation_log' 不存在，创建中...")
+            self.create_violation_log_table()
+        else:
+            print("表 'violation_log' 已存在。")
 
     def connect_photo_database(self):
         self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password,database=self.database_name)
@@ -262,3 +269,49 @@ class sql_class_add_people():
         self.cursor.execute(f"SELECT * FROM {self.table_name} WHERE ID = {ID}")
         rows=self.cursor.fetchall()
         return rows
+    
+    def create_violation_log_table(self):
+        """
+        创建违规日志表
+        """
+        try:
+            self.cursor.execute("""
+                CREATE TABLE IF NOT EXISTS violation_log (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(255),
+                    person_id VARCHAR(255),
+                    camera_name VARCHAR(255),
+                    violation_time DATETIME,
+                    violation_type VARCHAR(255),
+                    confidence FLOAT
+                )
+            """)
+            self.conn.commit()
+            print("表 'violation_log' 创建成功。")
+        except Exception as e:
+            print(f"创建违规日志表失败: {e}")
+    
+    def log_violation(self, name, person_id, camera_name, violation_type, confidence):
+        """
+        记录违规日志
+        """
+        try:
+            self.cursor.execute("""
+                INSERT INTO violation_log (name, person_id, camera_name, violation_time, violation_type, confidence)
+                VALUES (%s, %s, %s, NOW(), %s, %s)
+            """, (name, person_id, camera_name, violation_type, confidence))
+            self.conn.commit()
+        except Exception as e:
+            print(f"记录违规日志失败: {e}")
+    
+    def read_violation_logs(self):
+        """
+        读取违规日志
+        """
+        try:
+            self.cursor.execute("SELECT * FROM violation_log ORDER BY violation_time DESC")
+            rows = self.cursor.fetchall()
+            return rows
+        except Exception as e:
+            print(f"读取违规日志失败: {e}")
+            return []
