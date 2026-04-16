@@ -937,7 +937,10 @@ class Retinaface(object):
             all = self.sql_class.read_face_list()
             for i in all:
                 if i[1] == 'encoding':
-                    face_encodings_retrieved1 = np.frombuffer(i[2], dtype=np.float32).reshape(self.face_num,128)  # a[1]为encoding
+                    face_encodings_retrieved1 = np.frombuffer(i[2], dtype=np.float32)
+                    actual_face_num = len(face_encodings_retrieved1) // 128
+                    face_encodings_retrieved1 = face_encodings_retrieved1.reshape(actual_face_num, 128)
+                    print(f"从数据库加载了 {actual_face_num} 个人脸特征")
                 if i[1] == 'o_name':
                     o_name=i[4].split(',')
 
@@ -966,9 +969,9 @@ class Retinaface(object):
             # face_encodings_retrieved = np.frombuffer(a[1], dtype=np.float32)
             # self.known_face_names = face_encodings_retrieved
             # print(self.known_face_names.shape)
-        except:
-            if not encoding:
-                print(
-                    "载入已有人脸特征失败，请检查model_data下面是否生成了相关的人脸特征文件。"
-                )
-            pass
+        except FileNotFoundError as e:
+            print(f"参数文件不存在: {e}")
+        except ValueError as e:
+            print(f"数据格式错误: {e}")
+        except Exception as e:
+            print(f"载入人脸特征失败: {e}")
